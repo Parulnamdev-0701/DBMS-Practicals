@@ -1,7 +1,7 @@
--- DBMS PRACTICAL - EXPERIMENT 3
--- Employee-Department-Project Database
+DBMS PRACTICAL - EXPERIMENT 3
+Employee-Department-Project Database
 
--- Create Database
+Create Database
 CREATE DATABASE IF NOT EXISTS CompanyDB;
 
 USE CompanyDB;
