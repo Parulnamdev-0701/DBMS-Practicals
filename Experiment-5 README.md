@@ -1,124 +1,415 @@
-EXPERIMENT – 5
+-- ============================================================
+-- DBMS PRACTICAL - EXPERIMENT 3
+-- Employee-Department-Project Database
+-- ============================================================
 
-AIM: To create SQL views for department salary summary and employee hierarchy, test the updatability of views, and implement a recursive CTE to display reporting chains.
+-- Create Database
+CREATE DATABASE IF NOT EXISTS CompanyDB;
 
-SOURCE CODE
+USE CompanyDB;
 
-1. Creating Tables
 
-Create three tables: Department, Project, and Employee. The Employee table contains employee details, department ID, project ID, and manager ID, with foreign key constraints referencing the Department and Project tables.
+-- ============================================================
+-- 1. CREATE TABLES
+-- ============================================================
 
-2. Inserting Department Records
+-- Department Table
+CREATE TABLE IF NOT EXISTS Department (
+    dept_id INT PRIMARY KEY,
+    dept_name VARCHAR(50) NOT NULL
+);
 
-Insert five departments into the Department table:
 
-1. Human Resources — Delhi
+-- Project Table
+CREATE TABLE IF NOT EXISTS Project (
+    project_id INT PRIMARY KEY,
+    project_name VARCHAR(100) NOT NULL,
+    budget DECIMAL(12,2),
+    dept_id INT,
+    FOREIGN KEY (dept_id) REFERENCES Department(dept_id)
+);
 
-2. Information Technology — Chandigarh
 
-3. Finance — Mumbai
+-- Employee Table
+CREATE TABLE IF NOT EXISTS Employee (
+    emp_id INT PRIMARY KEY,
+    emp_name VARCHAR(50) NOT NULL,
+    salary DECIMAL(10,2),
+    hire_date DATE,
+    dept_id INT,
+    project_id INT,
+    FOREIGN KEY (dept_id) REFERENCES Department(dept_id),
+    FOREIGN KEY (project_id) REFERENCES Project(project_id)
+);
 
-4. Marketing — Bangalore
 
-5. Research and Development — Hyderabad
+-- ============================================================
+-- 2. INSERT DEPARTMENTS
+-- ============================================================
 
-6. Inserting Project Records
+INSERT INTO Department (dept_id, dept_name) VALUES
+(1, 'IT'),
+(2, 'HR'),
+(3, 'Finance'),
+(4, 'Marketing'),
+(5, 'Operations');
 
-Insert eight projects into the Project table:
 
-1. Website Development — 500000
+-- ============================================================
+-- 3. INSERT PROJECTS
+-- ============================================================
 
-2. Mobile Application — 750000
+INSERT INTO Project (project_id, project_name, budget, dept_id) VALUES
+(101, 'Cloud Migration', 150000, 1),
+(102, 'AI Analytics', 200000, 1),
+(103, 'Recruitment Portal', 80000, 2),
+(104, 'Financial Dashboard', 120000, 3),
+(105, 'Digital Campaign', 90000, 4),
+(106, 'Supply Chain System', 180000, 5),
+(107, 'Mobile Application', 140000, 1),
+(108, 'Employee Wellness', 60000, 2);
 
-3. Cyber Security System — 900000
 
-4. Data Analytics Platform — 850000
+-- ============================================================
+-- 4. INSERT 30 EMPLOYEES
+-- ============================================================
 
-5. AI Chatbot — 1200000
+INSERT INTO Employee
+(emp_id, emp_name, salary, hire_date, dept_id, project_id)
+VALUES
+(1, 'Aarav', 65000, '2022-01-10', 1, 101),
+(2, 'Vivaan', 72000, '2021-03-15', 1, 102),
+(3, 'Aditya', 58000, '2023-06-20', 1, 107),
+(4, 'Arjun', 81000, '2020-08-12', 1, 101),
+(5, 'Kabir', 69000, '2022-11-05', 1, 102),
+(6, 'Reyansh', 62000, '2024-02-18', 1, 107),
 
-6. Cloud Migration — 1000000
+(7, 'Ananya', 52000, '2022-04-11', 2, 103),
+(8, 'Diya', 48000, '2023-01-22', 2, 108),
+(9, 'Myra', 61000, '2021-07-19', 2, 103),
+(10, 'Sara', 55000, '2022-09-30', 2, 108),
+(11, 'Ishita', 47000, '2024-03-14', 2, 103),
+(12, 'Meera', 59000, '2020-12-01', 2, 108),
 
-7. Payroll Management — 400000
+(13, 'Rohan', 75000, '2021-02-17', 3, 104),
+(14, 'Karan', 68000, '2022-05-09', 3, 104),
+(15, 'Nikhil', 83000, '2019-10-21', 3, 104),
+(16, 'Yash', 62000, '2023-08-13', 3, 104),
+(17, 'Manav', 71000, '2021-11-28', 3, 104),
+(18, 'Dev', 56000, '2024-01-09', 3, 104),
 
-8. Market Research System — 600000
+(19, 'Aanya', 54000, '2022-02-25', 4, 105),
+(20, 'Kiara', 63000, '2021-06-16', 4, 105),
+(21, 'Tanya', 57000, '2023-04-10', 4, 105),
+(22, 'Riya', 66000, '2020-09-07', 4, 105),
+(23, 'Avni', 51000, '2024-02-05', 4, 105),
+(24, 'Navya', 70000, '2022-12-19', 4, 105),
 
-9. Inserting Employee Records
+(25, 'Samar', 60000, '2021-01-12', 5, 106),
+(26, 'Dhruv', 73000, '2020-04-23', 5, 106),
+(27, 'Atharv', 67000, '2022-07-18', 5, 106),
+(28, 'Parth', 59000, '2023-05-29', 5, 106),
+(29, 'Rudra', 76000, '2019-08-31', 5, 106),
+(30, 'Veer', 64000, '2024-01-20', 5, 106);
 
-Insert 30 employee records containing employee ID, employee name, salary, job role, department ID, project ID, and manager ID.
 
-5. Department Salary Summary
-
-Create a view named "Department_Salary_Summary" using the Department and Employee tables.
-
-The view uses aggregate functions to calculate:
-
-- Employee count
-- Average salary
-- Total salary
-- Highest salary
-- Lowest salary
-
-A LEFT JOIN is used to include departments even when they have no employees.
-
-Query:
-
-SELECT * FROM Department_Salary_Summary;
-
-Output: Displays the salary summary for each department.
-
-6. Employee Hierarchy
-
-Create a view named "Employee_Hierarchy" by joining the Employee table with itself.
-
-The view displays:
-
-- Employee ID
-- Employee name
-- Job role
-- Department ID
-- Manager ID
-- Manager name
-
-Query:
-
-SELECT * FROM Employee_Hierarchy;
-
-Output: Displays employees along with their managers' names.
-
-7. Employee Basic View
-
-Create a view named "Employee_Basic_View" containing employee ID, employee name, salary, and department ID.
-
-Output: Displays basic employee details.
-
-8. Updating a View
-
-Update the salary of employee ID 1 by increasing it by 1000 through the "Employee_Basic_View".
-
-Query:
-
-UPDATE Employee_Basic_View
-SET Salary = Salary + 1000
-WHERE Emp_ID = 1;
-
-Retrieve the updated record using:
+-- ============================================================
+-- 5. SELECTION
+-- Display employees whose salary is greater than 70,000
+-- ============================================================
 
 SELECT *
-FROM Employee_Basic_View
-WHERE Emp_ID = 1;
+FROM Employee
+WHERE salary > 70000;
 
-Output: Displays the updated salary of employee ID 1.
 
-9. Recursive CTE — Reporting Chain
+-- ============================================================
+-- 6. PROJECTION
+-- Display only employee names and salaries
+-- ============================================================
 
-Create a recursive Common Table Expression (CTE) named "Reporting_Chain".
+SELECT emp_name, salary
+FROM Employee;
 
-The query starts with employees whose "Manager_ID" is NULL and assigns them reporting level 0. It then recursively retrieves employees whose manager IDs match the employee IDs in the previous level, increasing the reporting level by 1.
 
-The final result is ordered by reporting level and employee ID.
+-- ============================================================
+-- 7. AGGREGATE FUNCTIONS
+-- COUNT, AVG, MAX, MIN and SUM
+-- ============================================================
 
-Output: Displays employee ID, employee name, manager ID, and reporting level.
+SELECT
+    COUNT(*) AS total_employees,
+    AVG(salary) AS average_salary,
+    MAX(salary) AS highest_salary,
+    MIN(salary) AS lowest_salary,
+    SUM(salary) AS total_salary
+FROM Employee;
 
-RESULT
 
-SQL views were created for department salary summaries and employee hierarchies. The updatability of a view was tested by modifying an employee's salary, and a recursive CTE was used to display employee reporting chains.
+-- ============================================================
+-- 8. GROUP BY
+-- Display employee count and average salary in each department
+-- ============================================================
+
+SELECT
+    d.dept_name,
+    COUNT(e.emp_id) AS employee_count,
+    AVG(e.salary) AS average_salary
+FROM Department d
+JOIN Employee e
+    ON d.dept_id = e.dept_id
+GROUP BY d.dept_id, d.dept_name;
+
+
+-- ============================================================
+-- 9. HAVING
+-- Display departments whose average salary is greater than 65,000
+-- ============================================================
+
+SELECT
+    d.dept_name,
+    AVG(e.salary) AS average_salary
+FROM Department d
+JOIN Employee e
+    ON d.dept_id = e.dept_id
+GROUP BY d.dept_id, d.dept_name
+HAVING AVG(e.salary) > 65000;
+
+
+-- ============================================================
+-- 10. CASE EXPRESSION
+-- Classify employees according to their salary
+-- ============================================================
+
+SELECT
+    emp_name,
+    salary,
+    CASE
+        WHEN salary >= 75000 THEN 'High Salary'
+        WHEN salary >= 60000 THEN 'Medium Salary'
+        ELSE 'Low Salary'
+    END AS salary_category
+FROM Employee;
+
+
+-- ============================================================
+-- 11. ORDER BY
+-- Display employees in descending order of salary
+-- ============================================================
+
+SELECT emp_name, salary
+FROM Employee
+ORDER BY salary DESC;
+
+
+-- ============================================================
+-- 12. JOIN
+-- Display employee name, department, project and salary
+-- ============================================================
+
+SELECT
+    e.emp_name,
+    d.dept_name,
+    p.project_name,
+    e.salary
+FROM Employee e
+JOIN Department d
+    ON e.dept_id = d.dept_id
+JOIN Project p
+    ON e.project_id = p.project_id
+ORDER BY d.dept_name, e.emp_name;
+
+
+-- ============================================================
+-- END OF EXPERIMENT 3
+-- ============================================================
+
+-- ============================================================
+-- DBMS PRACTICAL - EXPERIMENT 5
+-- Views, View Updatability and Recursive CTE
+-- ============================================================
+
+USE CompanyDB;
+
+
+-- ============================================================
+-- 1. ADD MANAGER_ID TO EMPLOYEE TABLE
+-- ============================================================
+
+ALTER TABLE Employee
+ADD COLUMN manager_id INT NULL;
+
+ALTER TABLE Employee
+ADD CONSTRAINT fk_employee_manager
+FOREIGN KEY (manager_id) REFERENCES Employee(emp_id);
+
+
+-- ============================================================
+-- 2. CREATE EMPLOYEE HIERARCHY
+-- Each department has one department head.
+-- The remaining employees report to another employee.
+-- ============================================================
+
+-- IT
+UPDATE Employee SET manager_id = NULL WHERE emp_id = 1;
+UPDATE Employee SET manager_id = 1 WHERE emp_id = 2;
+UPDATE Employee SET manager_id = 2 WHERE emp_id = 3;
+UPDATE Employee SET manager_id = 3 WHERE emp_id = 4;
+UPDATE Employee SET manager_id = 4 WHERE emp_id = 5;
+UPDATE Employee SET manager_id = 5 WHERE emp_id = 6;
+
+-- HR
+UPDATE Employee SET manager_id = NULL WHERE emp_id = 7;
+UPDATE Employee SET manager_id = 7 WHERE emp_id = 8;
+UPDATE Employee SET manager_id = 8 WHERE emp_id = 9;
+UPDATE Employee SET manager_id = 9 WHERE emp_id = 10;
+UPDATE Employee SET manager_id = 10 WHERE emp_id = 11;
+UPDATE Employee SET manager_id = 11 WHERE emp_id = 12;
+
+-- Finance
+UPDATE Employee SET manager_id = NULL WHERE emp_id = 13;
+UPDATE Employee SET manager_id = 13 WHERE emp_id = 14;
+UPDATE Employee SET manager_id = 14 WHERE emp_id = 15;
+UPDATE Employee SET manager_id = 15 WHERE emp_id = 16;
+UPDATE Employee SET manager_id = 16 WHERE emp_id = 17;
+UPDATE Employee SET manager_id = 17 WHERE emp_id = 18;
+
+-- Marketing
+UPDATE Employee SET manager_id = NULL WHERE emp_id = 19;
+UPDATE Employee SET manager_id = 19 WHERE emp_id = 20;
+UPDATE Employee SET manager_id = 20 WHERE emp_id = 21;
+UPDATE Employee SET manager_id = 21 WHERE emp_id = 22;
+UPDATE Employee SET manager_id = 22 WHERE emp_id = 23;
+UPDATE Employee SET manager_id = 23 WHERE emp_id = 24;
+
+-- Operations
+UPDATE Employee SET manager_id = NULL WHERE emp_id = 25;
+UPDATE Employee SET manager_id = 25 WHERE emp_id = 26;
+UPDATE Employee SET manager_id = 26 WHERE emp_id = 27;
+UPDATE Employee SET manager_id = 27 WHERE emp_id = 28;
+UPDATE Employee SET manager_id = 28 WHERE emp_id = 29;
+UPDATE Employee SET manager_id = 29 WHERE emp_id = 30;
+
+
+-- ============================================================
+-- 3. DEPARTMENT SALARY SUMMARY VIEW
+-- ============================================================
+
+CREATE OR REPLACE VIEW department_salary_summary AS
+SELECT
+    d.dept_id,
+    d.dept_name,
+    COUNT(e.emp_id) AS employee_count,
+    AVG(e.salary) AS average_salary,
+    MIN(e.salary) AS minimum_salary,
+    MAX(e.salary) AS maximum_salary,
+    SUM(e.salary) AS total_salary
+FROM Department d
+JOIN Employee e
+    ON d.dept_id = e.dept_id
+GROUP BY d.dept_id, d.dept_name;
+
+
+-- Verify Department Salary Summary View
+SELECT *
+FROM department_salary_summary;
+
+
+-- ============================================================
+-- 4. EMPLOYEE HIERARCHY VIEW
+-- Display each employee and their immediate manager
+-- ============================================================
+
+CREATE OR REPLACE VIEW employee_hierarchy AS
+SELECT
+    e.emp_id,
+    e.emp_name,
+    e.dept_id,
+    d.dept_name,
+    e.manager_id,
+    m.emp_name AS manager_name,
+    e.salary
+FROM Employee e
+JOIN Department d
+    ON e.dept_id = d.dept_id
+LEFT JOIN Employee m
+    ON e.manager_id = m.emp_id;
+
+
+-- Verify Employee Hierarchy View
+SELECT *
+FROM employee_hierarchy
+ORDER BY dept_id, emp_id;
+
+
+-- ============================================================
+-- 5. TEST UPDATABILITY OF EMPLOYEE HIERARCHY VIEW
+-- ============================================================
+
+UPDATE employee_hierarchy
+SET salary = salary + 1000
+WHERE emp_id = 6;
+
+
+-- Verify the salary
+SELECT
+    emp_id,
+    emp_name,
+    salary
+FROM Employee
+WHERE emp_id = 6;
+
+
+-- ============================================================
+-- 6. TEST UPDATABILITY OF DEPARTMENT SALARY SUMMARY VIEW
+-- ============================================================
+
+UPDATE department_salary_summary
+SET average_salary = average_salary + 1000
+WHERE dept_id = 1;
+
+
+-- ============================================================
+-- 7. RECURSIVE CTE - REPORTING CHAIN
+-- Start from department heads and follow manager relationships
+-- ============================================================
+
+WITH RECURSIVE reporting_chain AS (
+
+    -- Anchor Query
+    SELECT
+        e.emp_id,
+        e.emp_name,
+        e.manager_id,
+        1 AS level,
+        CAST(e.emp_name AS CHAR(500)) AS reporting_path
+    FROM Employee e
+    WHERE e.manager_id IS NULL
+
+    UNION ALL
+
+    -- Recursive Query
+    SELECT
+        e.emp_id,
+        e.emp_name,
+        e.manager_id,
+        rc.level + 1,
+        CONCAT(rc.reporting_path, ' -> ', e.emp_name)
+    FROM Employee e
+    JOIN reporting_chain rc
+        ON e.manager_id = rc.emp_id
+)
+
+SELECT
+    emp_id,
+    emp_name,
+    manager_id,
+    level,
+    reporting_path
+FROM reporting_chain
+ORDER BY reporting_path;
+
+
+-- ============================================================
+-- END OF EXPERIMENT 5
+-- ============================================================
